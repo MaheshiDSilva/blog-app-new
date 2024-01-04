@@ -6,6 +6,7 @@ const userSchema=new Schema({
     password: {type:String, required:true},
     avatar: {type:String},
     posts:{type:Number, default:0}
+
 })
 
 module.exports=model("User",userSchema)

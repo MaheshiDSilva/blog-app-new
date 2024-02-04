@@ -4,7 +4,7 @@ const HttpError = require("../models/errorModels")
 const authMiddleware = async (req, res, next) => {
     const Authorization = req.headers.Authorization || req.headers.Authorization;
 
-    if (Authorization && Authorization.startsWith("Bearer")) {
+    if (Authorization && Authorization.startsWith('Bearer')) {
         const token = Authorization.split(' ')[1]
         jwt.verify(token, process.env.JWT_SECRET, (err, info) => {
             if (err) {

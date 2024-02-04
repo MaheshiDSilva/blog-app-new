@@ -13,6 +13,7 @@ const HttpError=require("../models/errorModels")
 const registerUser = async (req, res, next) => {
     try {
         const {name, email, password, password2} = req.body;
+
         if (!name || !email || !password) {
             return next(new HttpError("Fill in all fields", 422))
         }
@@ -20,6 +21,7 @@ const registerUser = async (req, res, next) => {
         const newEmail = email.toLowerCase()
 
         const emailExists = await User.findOne({email: newEmail})
+
         if (emailExists) {
             return next(new HttpError("Email already exists", 422))
         }
@@ -55,6 +57,7 @@ const loginUser = async (req, res, next) => {
         const newEmail=email.toLowerCase();
 
         const user=await User.findOne({email: newEmail});
+
         if (!user){
             return next(new HttpError("Invalid credentials",422))
         }
@@ -64,7 +67,7 @@ const loginUser = async (req, res, next) => {
             return next(new HttpError("Invalid credentials",422))
         }
 
-        const {id:id,name}=user;
+        const {_id:id,name}=user;
         const token=jwt.sign({id,name},process.env.JWT_SECRET,{expiresIn: "1d"})
         res.status(200).json({token,id,name})
 
@@ -123,8 +126,17 @@ const changeAvatar = async (req, res, next) => {
        let fileName;
        fileName=avatar.name;
        let splittedFileName=fileName.split('.')
-       let newFileName=splittedFileName[0]+uuid()+'.'+splittedFileName[splittedFileName.length-1]
-       avatar.mv(path.join(__dirname,'..'))
+       let newFileName=splittedFileName[0]+ uuid() + '.' + splittedFileName[splittedFileName.length-1]
+       avatar.mv(path.join(__dirname,'..','uploads',newFileName), async (err)=>{
+           if (err){
+               return next(new HttpError(err))
+           }
+           const updatedAvatar= await User.findByIdAndUpdate(req.user.id,{avatar:newFileName},{new:true})
+           if (!updatedAvatar){
+               return next(new HttpError("Avatar couldn't be changed.",422))
+           }
+           res.status(200).json(updatedAvatar)
+       })
 
     }catch (error) {
         return next(new HttpError(error))
